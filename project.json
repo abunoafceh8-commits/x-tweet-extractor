@@ -1,20 +1,21 @@
 {
   "name": "x-tweet-extractor",
-  "title": "X Tweet Extractor - استخراج تغريدات تويتر",
-  "category": "أدوات X",
-  "description": "أداة استخراج تغريدات X (نسخة 2).",
-  "liveUrl": "https://x-tweet-extractor-1wsj.arcada.app/",
+  "title": "X Tweet Extractor — استخراج روابط التغريدات 2",
+  "category": "أدوات X/Twitter",
+  "description": "أداة استخراج التغريدات وروابطها من X.",
+  "liveUrl": "https://x-tweet-extractor-1wsj.arcada.app",
   "aliases": [],
-  "sourceLinks": [],
+  "sourceLinks": [
+    "https://www.designarena.ai/chat/fd2dd356-35bb-456a-81ca-b569a967de41"
+  ],
   "originalTitle": "X Tweet Extractor - استخراج تغريدات تويتر",
-  "originalDescription": "أداة استخراج تغريدات X (نسخة 2).",
+  "originalDescription": "",
   "type": "static-website",
   "archivedAt": "2026-10-15",
   "readyForHosting": true,
   "files": [
-    "assets/index-B6dnF-Co.js",
-    "assets/index-y_LEcrnB.css",
     "favicon.svg",
-    "index.html"
+    "assets/index-B6dnF-Co.js",
+    "assets/index-y_LEcrnB.css"
   ]
 }
