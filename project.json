@@ -1,0 +1,20 @@
+{
+  "name": "x-tweet-extractor",
+  "title": "X Tweet Extractor - استخراج تغريدات تويتر",
+  "category": "أدوات X",
+  "description": "أداة استخراج تغريدات X (نسخة 2).",
+  "liveUrl": "https://x-tweet-extractor-1wsj.arcada.app/",
+  "aliases": [],
+  "sourceLinks": [],
+  "originalTitle": "X Tweet Extractor - استخراج تغريدات تويتر",
+  "originalDescription": "أداة استخراج تغريدات X (نسخة 2).",
+  "type": "static-website",
+  "archivedAt": "2026-10-15",
+  "readyForHosting": true,
+  "files": [
+    "assets/index-B6dnF-Co.js",
+    "assets/index-y_LEcrnB.css",
+    "favicon.svg",
+    "index.html"
+  ]
+}
