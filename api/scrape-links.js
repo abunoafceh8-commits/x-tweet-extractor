@@ -2,73 +2,70 @@ const UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML,
 
 export default async function handler(req, res) {
   const body = typeof req.body === 'string' ? JSON.parse(req.body || '{}') : (req.body || {});
-  const { username } = body;
+  const { username, count = 40, cursor } = body;
   if (!username) return res.status(400).json({ error: 'Username required' });
   
   const cleanUser = username.replace('@', '').trim();
-  const tweetLinks = [];
+  const tweets = [];
+
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  if (req.method === 'OPTIONS') return res.status(200).end();
 
   try {
-    // Method 1: Wayback CDX for twitter.com
-    const sources = [
-      `twitter.com/${cleanUser}/status/*`,
-      `x.com/${cleanUser}/status/*`
-    ];
-    
-    for (const src of sources) {
+    // Syndication for live tweets
+    try {
+      const r = await fetch(`https://syndication.twitter.com/srv/timeline-profile/screen-name/${cleanUser}`, {
+        headers: { 'User-Agent': UA }, signal: AbortSignal.timeout(8000)
+      });
+      const html = await r.text();
+      const ids = [...html.matchAll(/data-tweet-id="(\d+)"/g)];
+      ids.forEach(m => {
+        tweets.push({
+          id: m[1],
+          tweet_id: m[1],
+          url: `https://x.com/${cleanUser}/status/${m[1]}`,
+          link: `https://x.com/${cleanUser}/status/${m[1]}`,
+          status: 'live'
+        });
+      });
+    } catch {}
+
+    // Wayback CDX
+    for (const domain of ['twitter.com', 'x.com']) {
       try {
-        const r = await fetch(`https://web.archive.org/cdx/search/cdx?url=${src}&output=json&limit=300&fl=timestamp,original,statuscode&collapse=urlkey`, {
-          signal: AbortSignal.timeout(15000)
+        const r = await fetch(`https://web.archive.org/cdx/search/cdx?url=${domain}/${cleanUser}/status/*&output=json&limit=${count}&fl=timestamp,original,statuscode&collapse=urlkey&statuscode=200`, {
+          signal: AbortSignal.timeout(8000)
         });
         const data = await r.json();
         const [, ...rows] = data;
         rows.forEach(row => {
-          if (row[2] === '200') {
-            const tweetId = row[1].match(/\/status\/(\d+)/)?.[1];
-            if (tweetId && !tweetLinks.find(t => t.id === tweetId)) {
-              tweetLinks.push({
-                id: tweetId,
-                url: row[1],
-                archiveUrl: `https://web.archive.org/web/${row[0]}/${row[1]}`,
-                date: `${row[0].slice(0,4)}-${row[0].slice(4,6)}-${row[0].slice(6,8)}`,
-                timestamp: row[0]
-              });
-            }
+          const tid = row[1]?.match(/\/status\/(\d+)/)?.[1];
+          if (tid && !tweets.find(t => t.tweet_id === tid)) {
+            tweets.push({
+              id: tid, tweet_id: tid,
+              url: row[1],
+              link: row[1],
+              archive_url: `https://web.archive.org/web/${row[0]}/${row[1]}`,
+              date: `${row[0].slice(0,4)}-${row[0].slice(4,6)}-${row[0].slice(6,8)}`,
+              status: 'archived'
+            });
           }
         });
       } catch {}
     }
 
-    // Method 2: Syndication
-    try {
-      const r = await fetch(`https://syndication.twitter.com/srv/timeline-profile/screen-name/${cleanUser}`, {
-        headers: { 'User-Agent': UA },
-        signal: AbortSignal.timeout(10000)
-      });
-      const html = await r.text();
-      const ids = html.match(/data-tweet-id="(\d+)"/g);
-      if (ids) {
-        ids.forEach(m => {
-          const id = m.match(/(\d+)/)[1];
-          if (!tweetLinks.find(t => t.id === id)) {
-            tweetLinks.push({
-              id,
-              url: `https://x.com/${cleanUser}/status/${id}`,
-              date: null,
-              live: true
-            });
-          }
-        });
-      }
-    } catch {}
-
-    tweetLinks.sort((a, b) => (b.timestamp || '').localeCompare(a.timestamp || ''));
-
-    res.setHeader('Access-Control-Allow-Origin', '*');
-    res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
-    return res.json({ username: cleanUser, tweets: tweetLinks, total: tweetLinks.length });
+    return res.json({
+      username: cleanUser,
+      tweets: tweets.slice(0, count),
+      links: tweets.slice(0, count).map(t => t.url || t.link),
+      total: tweets.length,
+      count: tweets.slice(0, count).length,
+      cursor: cursor ? parseInt(cursor) + count : count,
+      has_more: tweets.length > count
+    });
   } catch (e) {
-    return res.status(500).json({ error: e.message, tweets: [], total: 0 });
+    return res.json({ error: e.message, tweets: [], links: [], total: 0 });
   }
 }
