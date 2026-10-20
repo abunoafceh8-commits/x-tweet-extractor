@@ -1,4 +1,8 @@
 {
-  "cleanUrls": true,
-  "trailingSlash": false
+  "buildCommand": "",
+  "outputDirectory": ".",
+  "framework": null,
+  "rewrites": [
+    { "source": "/api/accounts", "destination": "/api/accounts" },    { "source": "/api/fetch-tweets", "destination": "/api/fetch-tweets" },    { "source": "/api/history", "destination": "/api/history" },    { "source": "/api/scrape-links", "destination": "/api/scrape-links" }
+  ]
 }
