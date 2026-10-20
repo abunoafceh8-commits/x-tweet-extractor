@@ -1,0 +1,6 @@
+{
+  "name": "x-tweet-extractor",
+  "private": true,
+  "type": "module",
+  "license": "MIT"
+}
